@@ -1,32 +1,37 @@
-# Lead Radar
+<h1 align="center">
+  <br>
+  <img src="https://img.icons8.com/fluency/256/radar.png" alt="Lead Radar" width="120">
+  <br>
+  Lead Radar
+  <br>
+</h1>
 
-Finds **newly launched startups & businesses worldwide** that likely need custom SaaS/software work — and refreshes the list **every day, for free**.
+<h4 align="center">Finds newly launched startups & businesses worldwide that likely need custom SaaS/software work — and refreshes the list every day, for free.</h4>
 
-Built for freelancers/agencies who sell SaaS builds and want a daily stream of fresh, qualified prospects across every region.
-
----
-
-## What it does
-
-Every day it:
-
-1. **Scrapes free public sources** (no paid APIs, no keys required):
-   - **Hacker News** — Show HN / Launch HN (founders announcing just-launched products)
-   - **Startup RSS feeds** — EU-Startups, Tech.eu, TechCrunch, Sifted, Disrupt Africa, LatamList, Tech in Asia (global coverage)
-   - **Dev.to** — `startup` / `saas` / `buildinpublic` / `launch` posts
-   - **GitHub** — brand-new repos that look like products
-   - **SEC EDGAR** — newly filing US companies (public registry)
-2. **Qualifies each lead** on the four things that matter:
-   - **Country / region** — keyword + gazetteer detection
-   - **Industry / category** — 17 buckets (Fintech, Healthtech, AI, SaaS, …)
-   - **Contact info / links** — extracts emails, company site, socials
-   - **"Needs-SaaS" score (0–100)** — buying signals like *just launched, MVP, just funded, manual/spreadsheet process, hiring engineers, scaling pains*
-3. **Dedupes** the same launch appearing on multiple sources, keeps the best record.
-4. Writes `public/leads.json` and shows it in a **filterable dashboard**.
+<p align="center">
+  <a href="#key-features">Key Features</a> •
+  <a href="#how-it-works">How To Use</a> •
+  <a href="#deployment">Deployment</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#license">License</a>
+</p>
 
 ---
 
-## Quick start (local)
+## 🎯 Key Features
+
+- 🕵️ **Daily Scrapes Free Public Sources**: Gathers fresh leads from Hacker News (Show HN / Launch HN), Startup RSS feeds, Dev.to, GitHub, and SEC EDGAR.
+- 🧠 **Smart Qualification**: Analyzes the data to evaluate contact info, geographical region, industry, and assigns a "Needs-SaaS" score (0–100) based on buying signals.
+- 🧹 **Automatic Deduplication**: Avoids repeating the same startup across multiple sources and retains the most detailed record.
+- 📊 **Filterable Dashboard**: Outputs `public/leads.json` straight into a beautiful and interactive filterable dashboard.
+- ⚡ **Zero Dependencies**: Core scraper runs on Node 18+ built-in APIs (`fetch`). No `npm install` needed!
+- 💸 **100% Free**: Operates using GitHub Actions and GitHub Pages on the free tier to automatically update every day.
+
+---
+
+## 🚀 How To Use (Local)
+
+To run the lead generation script locally:
 
 ```bash
 # 1. Fetch + qualify leads (writes public/leads.json)
@@ -37,75 +42,78 @@ npm run serve
 # open http://localhost:8080
 ```
 
-No `npm install` needed — the scraper is **zero-dependency** (uses Node 18+ built-in `fetch`). Requires Node ≥ 18.
+> **Note:** Requires **Node ≥ 18**. No `npm install` needed.
 
 ---
 
-## Free daily auto-update (GitHub Actions + Pages)
+## ☁️ Free Daily Auto-Update
 
-The included workflow (`.github/workflows/daily.yml`) runs everything on GitHub's free tier:
+The repository includes a GitHub workflow (`.github/workflows/daily.yml`) which runs automatically:
 
 1. Push this repo to GitHub.
-2. **Settings → Pages → Build and deployment → Source: GitHub Actions.**
-3. That's it. Every day at 06:12 UTC the action:
-   - runs the scraper,
-   - commits the refreshed `public/leads.json`,
-   - redeploys the dashboard to your Pages URL.
+2. Navigate to **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+3. That's it! Every day at `06:12 UTC`, the GitHub Action will:
+   - Run the web scraper.
+   - Commit the refreshed `leads.json`.
+   - Redeploy the dashboard to your Pages URL.
 
-You can also trigger it manually from the **Actions** tab (**Run workflow**).
-
-> No secrets required. If the repo's automatic `GITHUB_TOKEN` is present (it is, in Actions) the GitHub source gets higher rate limits automatically.
+*You can also trigger it manually from the **Actions** tab by clicking **Run workflow**.*
 
 ---
 
-## Using the dashboard
+## 🎛️ Using the Dashboard
 
-- **Search** by keyword (name / description).
-- **Filter** by region, country, industry, minimum needs-SaaS score, and "has contact info".
-- Each card shows the score, the signals that earned it, detected country/industry, and links (website / discussion / socials) so you can reach out.
+- 🔍 **Search**: Look up leads by keyword (name or description).
+- ⚙️ **Filter**: Narrow down by region, country, industry, minimum score, and available contact info.
+- 📈 **Insights**: Each card details the Needs-SaaS score, buying signals, and links (website, social) to initiate outreach quickly.
 
-Sort is by score first, then recency — so your best prospects are always on top.
+*Pro Tip: Sort is by score first, then recency — so your best prospects are always at the top!*
 
 ---
 
-## Tuning it for your niche
+## 🛠️ Tuning it for Your Niche
 
-Everything lives in small, readable files:
+Want to change how Lead Radar finds prospects? Simply edit these small, readable files:
 
-| Want to change… | Edit |
+| Customization | File Path |
 |---|---|
-| Which sources run | `src/sources/*.js` + `src/index.js` |
-| Buying signals / weights | `src/lib/score.js` |
-| Industry buckets | `src/lib/classify.js` |
-| Countries / cities detected | `src/lib/geo.js` |
-| RSS feeds in the mix | `src/sources/rssfeeds.js` |
-| Dashboard look/behavior | `public/index.html` |
+| **Data Sources** | `src/sources/*.js` + `src/index.js` |
+| **Buying Signals / Weights** | `src/lib/score.js` |
+| **Industry Buckets** | `src/lib/classify.js` |
+| **Locations Detected** | `src/lib/geo.js` |
+| **RSS Feeds List** | `src/sources/rssfeeds.js` |
+| **Dashboard UI** | `public/index.html` |
 
-### Optional paid upgrades (only if you later want more)
-The architecture leaves room for these behind API keys — all **off by default**:
-- Product Hunt (launches), UK Companies House (registry), OpenCorporates (global registry), Crunchbase/Apollo (contacts + funding).
-
----
-
-## How leads are scored (transparency)
-
-`score.js` adds weighted points for positive signals (just launched +22, MVP +20, just funded +18, manual/spreadsheet pain +20, needs a platform +18, hiring engineers +14, …) and subtracts for non-fits (large/established, pure editorial/opinion, VC funds). Final score is clamped to 0–100.
-
-A low score isn't "bad" — it just means fewer explicit buying signals were in the text. Short titles (common on registries) naturally score lower even when the company is a great fit, so use the **country/industry filters** alongside score.
+### Optional Paid Upgrades
+You can easily extend the platform behind API keys (all are **off by default**):
+- **Product Hunt** (Launches)
+- **UK Companies House** (Registry)
+- **OpenCorporates** (Global Registry)
+- **Crunchbase / Apollo** (Contacts & Funding)
 
 ---
 
-## Limitations (honest)
+## 📈 How Leads Are Scored
 
-- **No single source has "every business in every country."** That data is fragmented across ~200 registries, mostly paid. This tool maximizes *free* global coverage and is easy to extend.
-- **Geo/score are sparse on short text.** Many items are one-line titles with no location; those show `—`. Deeper enrichment (fetching each company page) is possible but slower and risks rate limits, so it's off by default.
-- Cloudflare-protected feeds (e.g. e27) are skipped — they block non-browser requests.
+`score.js` assesses various buying signals and assigns weights to calculate a score from 0-100:
+- **Positive Signals**: Just launched (`+22`), MVP (`+20`), Just funded (`+18`), Manual/spreadsheet process (`+20`), Hiring engineers (`+14`).
+- **Negative Signals**: Large/established, Pure editorial/opinion, VC funds.
+
+> *A low score isn't necessarily "bad"—it might just mean the public text was short. Use the **country/industry filters** alongside the score for the best results!*
 
 ---
 
-## Project layout
+## ⚠️ Limitations
 
-```
+- No single free source contains every business globally. Lead Radar maximizes **free** global coverage while keeping the tool easily extensible.
+- Geographic and score data are naturally sparse on short-text announcements.
+- Cloudflare-protected feeds (e.g. e27) block non-browser requests and are skipped.
+
+---
+
+## 📁 Project Layout
+
+```text
 lead-radar/
 ├─ src/
 │  ├─ index.js          # orchestrator → writes public/leads.json
@@ -118,5 +126,8 @@ lead-radar/
 └─ .github/workflows/daily.yml   # free daily cron + Pages deploy
 ```
 
-## License
-MIT
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
