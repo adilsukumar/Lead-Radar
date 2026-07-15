@@ -1,0 +1,15 @@
+{
+  "name": "startup-lead-radar",
+  "version": "1.0.0",
+  "description": "Finds newly launched startups & businesses worldwide that likely need custom SaaS work. Updates daily via free sources + public registries.",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "update": "node src/index.js",
+    "serve": "node src/serve.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lead Radar — daily startup & new-business leads</title>
+<style>
+  :root {
+    --bg: #0b0f17;
+    --panel: #131926;
+    --panel-2: #1a2233;
+    --border: #26304406;
+    --border-solid: #263044;
+    --text: #e6ebf4;
+    --muted: #8b97ad;
+    --muted-2: #5f6b82;
+    --accent: #4f8cff;
+    --accent-soft: rgba(79, 140, 255, 0.14);
+    --green: #35c88a;
+    --amber: #f2b544;
+    --red: #ff6b6b;
+    --chip: #222c40;
+    --radius: 12px;
+    --shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header.top {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(11, 15, 23, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-solid);
+    padding: 14px 20px;
+  }
+  .top-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .brand h1 { font-size: 18px; margin: 0; letter-spacing: -0.2px; }
+  .brand .dot { color: var(--accent); }
+  .meta { color: var(--muted); font-size: 12px; }
+  .meta strong { color: var(--text); font-weight: 600; }
+
+  .wrap { display: flex; gap: 20px; padding: 20px; align-items: flex-start; }
+  aside {
+    width: 260px; flex: 0 0 260px;
+    background: var(--panel); border: 1px solid var(--border-solid);
+    border-radius: var(--radius); padding: 16px; position: sticky; top: 82px;
+  }
+  aside h3 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  select, input[type="search"] {
+    width: 100%; padding: 8px 10px; background: var(--panel-2);
+    color: var(--text); border: 1px solid var(--border-solid);
+    border-radius: 8px; font-size: 13px; outline: none;
+  }
+  select:focus, input:focus { border-color: var(--accent); }
+  .range-row { display: flex; align-items: center; gap: 8px; }
+  .range-row input[type="range"] { flex: 1; accent-color: var(--accent); }
+  .range-val { font-variant-numeric: tabular-nums; min-width: 26px; text-align: right; color: var(--text); }
+  .check { display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text); }
+  .check input { accent-color: var(--accent); width: 15px; height: 15px; }
+  .reset {
+    width: 100%; margin-top: 4px; padding: 8px; background: transparent;
+    border: 1px solid var(--border-solid); color: var(--muted);
+    border-radius: 8px; cursor: pointer; font-size: 12px;
+  }
+  .reset:hover { color: var(--text); border-color: var(--muted); }
+
+  main { flex: 1; min-width: 0; }
+  .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .count { color: var(--muted); font-size: 13px; }
+  .count b { color: var(--text); }
+  .spacer { flex: 1; }
+  .sort { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+  .sort select { width: auto; padding: 6px 8px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border-solid);
+    border-radius: var(--radius); padding: 15px; display: flex; flex-direction: column; gap: 10px;
+    transition: border-color .15s, transform .15s;
+  }
+  .card:hover { border-color: #33507e; transform: translateY(-1px); }
+  .card-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .card-title { font-size: 15px; font-weight: 600; margin: 0; line-height: 1.35; }
+  .score-badge {
+    flex: 0 0 auto; width: 40px; height: 40px; border-radius: 10px;
+    display: grid; place-items: center; font-weight: 700; font-size: 15px;
+    font-variant-numeric: tabular-nums; background: var(--accent-soft); color: var(--accent);
+  }
+  .score-badge.hi { background: rgba(53, 200, 138, 0.16); color: var(--green); }
+  .score-badge.mid { background: rgba(242, 181, 68, 0.16); color: var(--amber); }
+  .score-badge.lo { background: var(--chip); color: var(--muted); }
+  .desc { color: var(--muted); font-size: 13px; margin: 0;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-size: 11px; padding: 3px 8px; border-radius: 999px;
+    background: var(--chip); color: var(--muted); white-space: nowrap;
+  }
+  .chip.country { background: rgba(79, 140, 255, 0.12); color: #9dc0ff; }
+  .chip.signal { background: rgba(53, 200, 138, 0.10); color: #7fddb4; }
+  .card-foot { display: flex; align-items: center; gap: 12px; margin-top: 2px; flex-wrap: wrap;
+    border-top: 1px solid var(--border-solid); padding-top: 10px; }
+  .src { font-size: 12px; color: var(--muted-2); }
+  .links { display: flex; gap: 12px; margin-left: auto; }
+  .links a { font-size: 12px; }
+  .empty { text-align: center; color: var(--muted); padding: 60px 20px; }
+  .empty h2 { color: var(--text); font-weight: 600; }
+  footer { text-align: center; color: var(--muted-2); font-size: 12px; padding: 30px; }
+  @media (max-width: 820px) {
+    .wrap { flex-direction: column; }
+    aside { width: 100%; flex: none; position: static; }
+  }
+
+  /* ---- Pitch angle line on card ---- */
+  .pitch { font-size: 12px; color: #cdb4ff; background: rgba(150, 110, 255, 0.10);
+    border-radius: 8px; padding: 6px 9px; margin: 0; }
+  .pitch b { color: #e3d4ff; font-weight: 600; }
+  .card { cursor: pointer; }
+
+  /* ---- Modal ---- */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(4, 7, 12, 0.72);
+    backdrop-filter: blur(4px); z-index: 50; display: none;
+    align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--border-solid);
+    border-radius: 16px; max-width: 720px; width: 100%; box-shadow: var(--shadow);
+    animation: pop .14s ease-out;
+  }
+  @keyframes pop { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .modal-head { display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--border-solid); }
+  .modal-head h2 { margin: 0 0 4px; font-size: 19px; }
+  .modal-head .sub { color: var(--muted); font-size: 13px; }
+  .x { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; line-height: 1; }
+  .x:hover { color: var(--text); }
+  .modal-body { padding: 18px 20px; }
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .detail { background: var(--panel-2); border-radius: 8px; padding: 9px 11px; }
+  .detail .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .detail .v { font-size: 13px; color: var(--text); margin-top: 2px; word-break: break-word; }
+  .detail .v a { word-break: break-all; }
+
+  .research-links { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .research-links a {
+    font-size: 12px; padding: 6px 11px; border-radius: 8px; background: var(--panel-2);
+    border: 1px solid var(--border-solid); color: var(--text);
+  }
+  .research-links a:hover { border-color: var(--accent); text-decoration: none; }
+
+  .tmpl-tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .tmpl-tab {
+    font-size: 12px; padding: 7px 13px; border-radius: 8px; cursor: pointer;
+    background: var(--panel-2); border: 1px solid var(--border-solid); color: var(--muted);
+  }
+  .tmpl-tab.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .tmpl-box { position: relative; }
+  .tmpl-box textarea {
+    width: 100%; min-height: 190px; resize: vertical; background: var(--panel-2);
+    color: var(--text); border: 1px solid var(--border-solid); border-radius: 10px;
+    padding: 12px 13px; font: 13px/1.6 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  .tmpl-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .btn {
+    font-size: 13px; padding: 8px 14px; border-radius: 8px; cursor: pointer;
+    background: var(--accent); border: 1px solid var(--accent); color: #fff; font-weight: 600;
+  }
+  .btn.ghost { background: transparent; color: var(--text); border-color: var(--border-solid); font-weight: 500; }
+  .btn.ghost:hover { border-color: var(--muted); }
+  .copied { color: var(--green); font-size: 12px; align-self: center; }
+
+  /* ---- "Your details" panel ---- */
+  .me-panel { margin-top: 8px; }
+  .me-panel summary { cursor: pointer; color: var(--muted); font-size: 12px; padding: 4px 0; }
+  .me-panel input { margin-bottom: 8px; }
+
+  /* ---- Tabs (Leads / Leaderboards) ---- */
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    font-size: 13px; padding: 7px 14px; border-radius: 8px 8px 0 0; cursor: pointer;
+    background: transparent; border: 1px solid transparent; color: var(--muted);
+  }
+  .nav-tab.active { background: var(--panel); border-color: var(--border-solid); border-bottom-color: var(--panel); color: var(--text); }
+
+  /* ---- Leaderboards ---- */
+  .boards { padding: 20px; }
+  .board-summary { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+  .stat {
+    background: var(--panel); border: 1px solid var(--border-solid); border-radius: var(--radius);
+    padding: 14px 18px; min-width: 130px;
+  }
+  .stat .n { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .stat.green .n { color: var(--green); }
+  .stat.amber .n { color: var(--amber); }
+  .stat.accent .n { color: var(--accent); }
+  .board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .board { background: var(--panel); border: 1px solid var(--border-solid); border-radius: var(--radius); padding: 16px; }
+  .board h3 { margin: 0 0 12px; font-size: 14px; display: flex; align-items: baseline; gap: 8px; }
+  .board-sub { font-size: 11px; color: var(--muted); font-weight: 400; }
+  .board-list { list-style: none; margin: 0; padding: 0; counter-reset: rank; }
+  .board-list li {
+    display: flex; align-items: center; gap: 10px; padding: 8px 0;
+    border-bottom: 1px solid var(--border-solid); font-size: 13px;
+  }
+  .board-list li:last-child { border-bottom: none; }
+  .board-list li::before {
+    counter-increment: rank; content: counter(rank);
+    flex: 0 0 22px; height: 22px; border-radius: 6px; background: var(--chip);
+    color: var(--muted); display: grid; place-items: center; font-size: 11px; font-weight: 700;
+  }
+  .board-list li .li-main { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+  .board-list li .li-main:hover { color: var(--accent); }
+  .board-list li .li-val { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
+  .bar { height: 6px; border-radius: 3px; background: var(--accent); opacity: .5; }
+
+  /* ---- Outreach status (tracker) ---- */
+  .status-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 2px; }
+  .status-label { font-size: 12px; color: var(--muted); align-self: center; margin-right: 2px; }
+  .pill {
+    font-size: 11px; padding: 4px 9px; border-radius: 999px; cursor: pointer;
+    background: var(--chip); border: 1px solid transparent; color: var(--muted);
+  }
+  .pill:hover { color: var(--text); }
+  .pill.on[data-s="new"] { background: rgba(139,151,173,.18); color: var(--text); border-color: var(--muted-2); }
+  .pill.on[data-s="contacted"] { background: rgba(79,140,255,.18); color: #9dc0ff; border-color: var(--accent); }
+  .pill.on[data-s="replied"] { background: rgba(242,181,68,.18); color: var(--amber); border-color: var(--amber); }
+  .pill.on[data-s="accepted"] { background: rgba(53,200,138,.18); color: var(--green); border-color: var(--green); }
+  .pill.on[data-s="rejected"] { background: rgba(255,107,107,.16); color: var(--red); border-color: var(--red); }
+  .status-tag { font-size: 10px; padding: 2px 7px; border-radius: 999px; background: var(--chip); color: var(--muted); }
+  .status-tag.contacted { color: #9dc0ff; } .status-tag.replied { color: var(--amber); }
+  .status-tag.accepted { color: var(--green); } .status-tag.rejected { color: var(--red); }
+  .funnel-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 13px; }
+  .funnel-row .fl { flex: 0 0 90px; color: var(--muted); }
+  .funnel-row .fbar { height: 18px; border-radius: 5px; background: var(--accent-soft); min-width: 2px; }
+  .funnel-row .fn { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .pipeline-item { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border-solid); font-size: 13px; }
+  .pipeline-item:last-child { border-bottom: none; }
+  .pipeline-item .pi-main { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+  .pipeline-item .pi-main:hover { color: var(--accent); }
+  .board .muted-note { color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <div class="brand"><h1>Lead Radar<span class="dot">.</span></h1></div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" id="tabLeads" data-view="leads">Leads</button>
+      <button class="nav-tab" id="tabBoards" data-view="boards">Leaderboards</button>
+    </div>
+    <span class="meta" id="metaLine">Loading…</span>
+  </div>
+</header>
+
+<div class="wrap" id="leadsView">
+  <aside>
+    <h3>Filters</h3>
+    <div class="field">
+      <label for="q">Search</label>
+      <input type="search" id="q" placeholder="name, keyword…" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label for="region">Region</label>
+      <select id="region"><option value="">All regions</option></select>
+    </div>
+    <div class="field">
+      <label for="country">Country</label>
+      <select id="country"><option value="">All countries</option></select>
+    </div>
+    <div class="field">
+      <label for="industry">Industry</label>
+      <select id="industry"><option value="">All industries</option></select>
+    </div>
+    <div class="field">
+      <label for="source">Source</label>
+      <select id="source"><option value="">All sources</option></select>
+    </div>
+    <div class="field">
+      <label for="minScore">Min. needs-SaaS score</label>
+      <div class="range-row">
+        <input type="range" id="minScore" min="0" max="100" step="2" value="0" />
+        <span class="range-val" id="minScoreVal">0</span>
+      </div>
+    </div>
+    <div class="field">
+      <label class="check"><input type="checkbox" id="hasContact" /> Has contact / website</label>
+    </div>
+    <button class="reset" id="reset">Reset filters</button>
+  </aside>
+
+  <main>
+    <div class="toolbar">
+      <span class="count" id="count"></span>
+      <span class="spacer"></span>
+      <span class="sort">Sort
+        <select id="sort">
+          <option value="score">Needs-SaaS score</option>
+          <option value="date">Most recent</option>
+        </select>
+      </span>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden>
+      <h2>No leads match these filters</h2>
+      <p>Try widening the score, clearing the country, or resetting.</p>
+    </div>
+  </main>
+</div>
+
+<div class="boards" id="boardsView" hidden>
+  <div class="board-summary" id="boardSummary"></div>
+  <div class="board-grid">
+    <section class="board" id="boardHot">
+      <h3>🔥 Hottest leads <span class="board-sub">by needs-SaaS score</span></h3>
+      <ol class="board-list" id="listHot"></ol>
+    </section>
+    <section class="board" id="boardAccept">
+      <h3>🏆 Your acceptance funnel <span class="board-sub">from your outreach</span></h3>
+      <div id="listAccept"></div>
+    </section>
+    <section class="board" id="boardCountry">
+      <h3>🌍 Top countries <span class="board-sub">by lead count</span></h3>
+      <ol class="board-list" id="listCountry"></ol>
+    </section>
+    <section class="board" id="boardIndustry">
+      <h3>🏭 Top industries <span class="board-sub">by lead count</span></h3>
+      <ol class="board-list" id="listIndustry"></ol>
+    </section>
+    <section class="board" id="boardSignal">
+      <h3>⚡ Most common signals <span class="board-sub">buying intent</span></h3>
+      <ol class="board-list" id="listSignal"></ol>
+    </section>
+    <section class="board" id="boardPipeline">
+      <h3>📋 Your pipeline <span class="board-sub">leads you're working</span></h3>
+      <div id="listPipeline"></div>
+    </section>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2 id="mTitle"></h2>
+        <div class="sub" id="mSub"></div>
+      </div>
+      <button class="x" id="mClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="status-row" id="mStatus">
+        <span class="status-label">Outreach status:</span>
+        <button class="pill" data-s="new">New</button>
+        <button class="pill" data-s="contacted">Contacted</button>
+        <button class="pill" data-s="replied">Replied</button>
+        <button class="pill" data-s="accepted">Accepted</button>
+        <button class="pill" data-s="rejected">Rejected</button>
+      </div>
+      <div class="detail-grid" id="mDetails"></div>
+      <div class="research-links" id="mLinks"></div>
+
+      <div class="tmpl-tabs" id="mTabs">
+        <button class="tmpl-tab active" data-t="email">Email</button>
+        <button class="tmpl-tab" data-t="whatsapp">WhatsApp</button>
+        <button class="tmpl-tab" data-t="call">Call script</button>
+        <button class="tmpl-tab" data-t="linkedin">LinkedIn DM</button>
+      </div>
+      <div class="tmpl-box">
+        <textarea id="mTmpl" spellcheck="false"></textarea>
+      </div>
+      <div class="tmpl-actions">
+        <button class="btn" id="mCopy">Copy</button>
+        <button class="btn ghost" id="mOpen">Open in app</button>
+        <span class="copied" id="mCopied" hidden>Copied ✓</span>
+      </div>
+
+      <details class="me-panel" id="mePanel">
+        <summary>Personalize templates (your name, company, offer) — saved in this browser</summary>
+        <div style="margin-top:10px">
+          <input type="text" id="meName" placeholder="Your name (e.g. Alex)" />
+          <input type="text" id="meCompany" placeholder="Your company (e.g. Pawsitive Studio)" />
+          <input type="text" id="meOffer" placeholder="What you offer (e.g. custom SaaS & MVP builds)" />
+          <input type="text" id="meCalendar" placeholder="Your booking link (optional)" />
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<footer id="footer"></footer>
+
+<script>
+"use strict";
+// ---- State ----
+let ALL = [];
+let META = {};
+const el = (id) => document.getElementById(id);
+const filters = {
+  q: "", region: "", country: "", industry: "", source: "",
+  minScore: 0, hasContact: false, sort: "score",
+};
+
+// ---- Load ----
+async function load() {
+  try {
+    const res = await fetch("leads.json", { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    ALL = Array.isArray(data.leads) ? data.leads : [];
+    META = data;
+    hydrate();
+  } catch (err) {
+    el("metaLine").textContent = "Could not load leads.json — run the scraper first (npm start).";
+    el("grid").innerHTML = "";
+  }
+}
+
+function hydrate() {
+  const gen = META.generatedAt ? new Date(META.generatedAt) : null;
+  const when = gen ? gen.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "unknown";
+  el("metaLine").innerHTML = "";
+  const total = document.createElement("span");
+  total.innerHTML = "<strong>" + ALL.length + "</strong> leads";
+  const upd = document.createElement("span");
+  upd.textContent = " · updated " + when;
+  el("metaLine").append(total, upd);
+
+  // Populate facet dropdowns from data (sorted, deduped).
+  const facets = META.facets || {};
+  fillSelect("region", facets.regions || uniq(ALL.map(l => l.region)));
+  fillSelect("country", facets.countries || uniq(ALL.map(l => l.country)));
+  fillSelect("industry", facets.industries || uniq(ALL.flatMap(l => l.industries || [])));
+  fillSelect("source", facets.sources || uniq(ALL.map(l => l.source)));
+
+  render();
+}
+
+function uniq(arr) {
+  return [...new Set(arr.filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
+}
+function fillSelect(id, values) {
+  const sel = el(id);
+  for (const v of values) {
+    const o = document.createElement("option");
+    o.value = v; o.textContent = v;
+    sel.appendChild(o);
+  }
+}
+
+// ---- Filtering ----
+function applyFilters() {
+  const q = filters.q.trim().toLowerCase();
+  return ALL.filter(l => {
+    if (filters.region && l.region !== filters.region) return false;
+    if (filters.country && l.country !== filters.country) return false;
+    if (filters.source && l.source !== filters.source) return false;
+    if (filters.industry && !(l.industries || []).includes(filters.industry)) return false;
+    if ((l.score || 0) < filters.minScore) return false;
+    if (filters.hasContact) {
+      const c = l.contacts || {};
+      const has = (c.emails && c.emails.length) || c.website || (c.socials && c.socials.length);
+      if (!has) return false;
+    }
+    if (q) {
+      const hay = (l.title + " " + (l.description || "") + " " + (l.industries || []).join(" ")).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function sortLeads(list) {
+  const s = filters.sort;
+  return list.slice().sort((a, b) => {
+    if (s === "date") return new Date(b.date || 0) - new Date(a.date || 0);
+    if ((b.score || 0) !== (a.score || 0)) return (b.score || 0) - (a.score || 0);
+    return new Date(b.date || 0) - new Date(a.date || 0);
+  });
+}
+
+// ---- Render (all text via textContent — never innerHTML for scraped data) ----
+function render() {
+  const list = sortLeads(applyFilters());
+  const grid = el("grid");
+  grid.innerHTML = "";
+  el("count").innerHTML = "Showing <b>" + list.length + "</b> of " + ALL.length;
+  el("empty").hidden = list.length !== 0;
+
+  const frag = document.createDocumentFragment();
+  for (const l of list) frag.appendChild(card(l));
+  grid.appendChild(frag);
+}
+
+function scoreClass(s) { return s >= 40 ? "hi" : s >= 20 ? "mid" : "lo"; }
+
+function card(l) {
+  const c = document.createElement("div");
+  c.className = "card";
+  c.tabIndex = 0;
+  c.setAttribute("role", "button");
+  c.addEventListener("click", () => openModal(l));
+  c.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openModal(l); }
+  });
+
+  const head = document.createElement("div");
+  head.className = "card-head";
+  const title = document.createElement("h3");
+  title.className = "card-title";
+  title.textContent = l.title || "(untitled)";
+  const badge = document.createElement("div");
+  badge.className = "score-badge " + scoreClass(l.score || 0);
+  badge.textContent = l.score || 0;
+  badge.title = "Needs-SaaS score";
+  head.append(title, badge);
+
+  const desc = document.createElement("p");
+  desc.className = "desc";
+  desc.textContent = l.description || "";
+
+  const chips = document.createElement("div");
+  chips.className = "chips";
+  if (l.country) chips.appendChild(chip(l.country, "country"));
+  for (const ind of (l.industries || []).slice(0, 4)) chips.appendChild(chip(ind));
+  for (const sig of (l.signals || []).slice(0, 3)) chips.appendChild(chip(sig, "signal"));
+
+  const foot = document.createElement("div");
+  foot.className = "card-foot";
+  const src = document.createElement("span");
+  src.className = "src";
+  src.textContent = l.source + (l.alsoSeenOn && l.alsoSeenOn.length ? " +" + l.alsoSeenOn.length : "");
+  // Show the tracker status inline so worked leads are visible on the grid.
+  const st = statusOf(l.id);
+  if (st && st !== "new") {
+    const tag = document.createElement("span");
+    tag.className = "status-tag " + st;
+    tag.textContent = st;
+    src.append(" · ");
+    src.appendChild(tag);
+  }
+  const links = document.createElement("div");
+  links.className = "links";
+  const c2 = l.contacts || {};
+  if (l.url) links.appendChild(link(l.url, "Site"));
+  if (l.discussionUrl) links.appendChild(link(l.discussionUrl, "Discussion"));
+  if (c2.emails && c2.emails.length) links.appendChild(link("mailto:" + c2.emails[0], "Email"));
+  foot.append(src, links);
+
+  c.append(head, desc, chips, foot);
+  if (!desc.textContent) desc.remove();
+  return c;
+}
+
+function chip(text, cls) {
+  const s = document.createElement("span");
+  s.className = "chip" + (cls ? " " + cls : "");
+  s.textContent = text;
+  return s;
+}
+function link(href, label) {
+  const a = document.createElement("a");
+  // Only allow http(s)/mailto to avoid javascript: URLs from scraped data.
+  const safe = /^(https?:|mailto:)/i.test(href);
+  a.href = safe ? href : "#";
+  a.textContent = label;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  // Don't let a link click bubble to a parent card's open-modal handler.
+  a.addEventListener("click", (e) => e.stopPropagation());
+  return a;
+}
+
+// ---- "Your details" (persisted in localStorage) ----
+const ME_KEY = "leadradar_me";
+function getMe() {
+  try { return JSON.parse(localStorage.getItem(ME_KEY)) || {}; }
+  catch { return {}; }
+}
+function setMe(patch) {
+  const me = Object.assign(getMe(), patch);
+  localStorage.setItem(ME_KEY, JSON.stringify(me));
+  return me;
+}
+function meDefaults() {
+  const me = getMe();
+  return {
+    name: me.name || "there",
+    company: me.company || "",
+    offer: me.offer || "custom software / SaaS builds",
+    calendar: me.calendar || "",
+  };
+}
+
+// ---- Template generation (client-side, editable) ----
+function firstName(l) {
+  // Best-effort founder handle from author; fall back to a friendly generic.
+  if (l.author) {
+    const a = String(l.author).replace(/[_\d]+/g, " ").trim().split(/\s+/)[0];
+    if (a && a.length > 1) return a.charAt(0).toUpperCase() + a.slice(1);
+  }
+  return "there";
+}
+function bizLabel(l) { return l.businessName || l.title || "your company"; }
+function whatTheyDo(l) {
+  const s = (l.summary || l.description || "").trim();
+  return s ? s.replace(/\s+/g, " ").slice(0, 160) : "";
+}
+function pitch(l) { return l.pitchAngle || "custom software that fits how you work"; }
+function services(l) {
+  const s = l.services || [];
+  return s.length ? s.slice(0, 3).join(", ") : "custom builds";
+}
+function signMe() {
+  const me = meDefaults();
+  return me.company ? me.name + " · " + me.company : me.name;
+}
+
+function tmplEmail(l) {
+  const me = meDefaults();
+  const doLine = whatTheyDo(l)
+    ? "I saw " + bizLabel(l) + " — " + whatTheyDo(l) + ". Really like the direction."
+    : "I came across " + bizLabel(l) + " and really like what you're building.";
+  const offerLine = me.company
+    ? "I run " + me.company + ", where we do " + me.offer + "."
+    : "I do " + me.offer + ".";
+  return [
+    "Subject: Quick idea for " + bizLabel(l),
+    "",
+    "Hi " + firstName(l) + ",",
+    "",
+    doLine,
+    "",
+    offerLine + " For a team at your stage, the highest-leverage thing is usually " +
+      pitch(l) + " — I could put together " + services(l) + " so you can move faster without hiring a full team.",
+    "",
+    "Worth a quick 15-min chat to see if it's a fit?" + (me.calendar ? " You can grab a time here: " + me.calendar : ""),
+    "",
+    "Best,",
+    signMe(),
+  ].join("\n");
+}
+function tmplWhatsapp(l) {
+  const me = meDefaults();
+  return [
+    "Hi " + firstName(l) + "! 👋 I came across " + bizLabel(l) + " and really like what you're building.",
+    "",
+    "I help early teams with " + me.offer + " — for you, " + pitch(l) + " could be a quick win. " +
+      "Open to a quick chat this week?",
+  ].join("\n");
+}
+function tmplCall(l) {
+  return [
+    "CALL SCRIPT — " + bizLabel(l),
+    "",
+    "Opener:",
+    "  \"Hi, is this " + firstName(l) + "? I'll be quick — I came across " + bizLabel(l) +
+      " and had one specific idea, is now an ok moment for 30 seconds?\"",
+    "",
+    "Hook:",
+    "  \"I help teams at your stage with " + services(l) + ". Most founders I talk to are " +
+      "stitching things together manually right now — is that true for you too?\"",
+    "",
+    "Value:",
+    "  \"The reason I reached out specifically: " + pitch(l) + ". That's usually where I can save weeks.\"",
+    "",
+    "Close:",
+    "  \"Can I send over a short plan and we grab 15 minutes later this week?\"",
+  ].join("\n");
+}
+function tmplLinkedin(l) {
+  const me = meDefaults();
+  return [
+    "Hi " + firstName(l) + " — really like what you're doing with " + bizLabel(l) + ".",
+    "I help early teams with " + me.offer + "; " + pitch(l) +
+      " looks like a natural fit. Mind if I share a quick idea?",
+  ].join("\n");
+}
+const TEMPLATES = { email: tmplEmail, whatsapp: tmplWhatsapp, call: tmplCall, linkedin: tmplLinkedin };
+
+// ---- Modal ----
+let CURRENT = null;      // current lead
+let CURRENT_TAB = "email";
+
+// ---- Outreach tracker (localStorage; keyed by lead id) ----
+const TRACK_KEY = "leadradar_track";
+const STATUSES = ["new", "contacted", "replied", "accepted", "rejected"];
+function getTrack() {
+  try { return JSON.parse(localStorage.getItem(TRACK_KEY)) || {}; }
+  catch { return {}; }
+}
+function statusOf(id) { return getTrack()[id] || null; }
+function setStatus(id, status) {
+  const t = getTrack();
+  if (!status || status === t[id]) delete t[id];   // toggle off
+  else t[id] = status;
+  localStorage.setItem(TRACK_KEY, JSON.stringify(t));
+}
+
+function renderStatusPills() {
+  const cur = CURRENT ? statusOf(CURRENT.id) : null;
+  document.querySelectorAll("#mStatus .pill").forEach((b) => {
+    b.classList.toggle("on", b.dataset.s === cur);
+  });
+}
+
+// ---- Boards / leaderboards ----
+function tally(items) {
+  const m = new Map();
+  for (const x of items) m.set(x, (m.get(x) || 0) + 1);
+  return [...m.entries()].sort((a, b) => b[1] - a[1]);
+}
+function boardList(elId, rows, { onClick } = {}) {
+  const box = el(elId);
+  box.innerHTML = "";
+  if (!rows.length) {
+    const li = document.createElement("li");
+    li.className = "muted-row"; li.textContent = "No data yet.";
+    box.appendChild(li); return;
+  }
+  const max = Math.max(...rows.map((r) => r.value)) || 1;
+  for (const r of rows) {
+    const li = document.createElement("li");
+    const main = document.createElement("span");
+    main.className = "li-main"; main.textContent = r.label;
+    if (onClick && r.lead) { main.addEventListener("click", () => openModal(r.lead)); }
+    const val = document.createElement("span");
+    val.className = "li-val"; val.textContent = r.value;
+    const bar = document.createElement("div");
+    bar.className = "bar"; bar.style.width = Math.round((r.value / max) * 60) + "px";
+    li.append(main, val, bar);
+    box.appendChild(li);
+  }
+}
+
+function renderBoards() {
+  // Hottest leads by score
+  const hot = ALL.slice().sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 10)
+    .map((l) => ({ label: bizLabel(l), value: l.score || 0, lead: l }));
+  boardList("listHot", hot, { onClick: true });
+
+  // Countries / industries / signals
+  boardList("listCountry",
+    tally(ALL.map((l) => l.country).filter(Boolean)).slice(0, 10).map(([label, value]) => ({ label, value })));
+  boardList("listIndustry",
+    tally(ALL.flatMap((l) => l.industries || [])).slice(0, 10).map(([label, value]) => ({ label, value })));
+  boardList("listSignal",
+    tally(ALL.flatMap((l) => l.signals || [])).slice(0, 10).map(([label, value]) => ({ label, value })));
+
+  renderTrackerBoards();
+}
+
+function renderTrackerBoards() {
+  const track = getTrack();
+  const byId = new Map(ALL.map((l) => [l.id, l]));
+  const counts = { contacted: 0, replied: 0, accepted: 0, rejected: 0, new: 0 };
+  const pipeline = [];
+  for (const [id, status] of Object.entries(track)) {
+    counts[status] = (counts[status] || 0) + 1;
+    const lead = byId.get(id);
+    if (lead && status !== "rejected") pipeline.push({ lead, status });
+  }
+
+  // Acceptance funnel
+  const reached = counts.contacted + counts.replied + counts.accepted + counts.rejected;
+  const acceptRate = reached ? Math.round((counts.accepted / reached) * 100) : 0;
+  const accBox = el("listAccept");
+  accBox.innerHTML = "";
+  const funnel = [
+    ["Contacted", counts.contacted], ["Replied", counts.replied],
+    ["Accepted", counts.accepted], ["Rejected", counts.rejected],
+  ];
+  for (const [label, value] of funnel) {
+    const row = document.createElement("div");
+    row.className = "funnel-row";
+    const k = document.createElement("span"); k.textContent = label;
+    const v = document.createElement("span"); v.className = "li-val"; v.textContent = value;
+    row.append(k, v); accBox.appendChild(row);
+  }
+  const rate = document.createElement("div");
+  rate.className = "accept-rate";
+  rate.textContent = acceptRate + "% acceptance";
+  rate.title = "accepted / everyone you've contacted";
+  accBox.appendChild(rate);
+
+  // Pipeline (active leads you're working)
+  const order = { replied: 0, contacted: 1, accepted: 2, new: 3 };
+  pipeline.sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9));
+  const pbox = el("listPipeline");
+  pbox.innerHTML = "";
+  if (!pipeline.length) {
+    pbox.innerHTML = "<div class='muted-row'>Mark leads Contacted/Replied/Accepted to build your pipeline.</div>";
+  } else {
+    for (const { lead, status } of pipeline.slice(0, 15)) {
+      const row = document.createElement("div");
+      row.className = "pipe-row";
+      const name = document.createElement("span");
+      name.className = "li-main"; name.textContent = bizLabel(lead);
+      name.addEventListener("click", () => openModal(lead));
+      const tag = document.createElement("span");
+      tag.className = "status-tag " + status; tag.textContent = status;
+      row.append(name, tag); pbox.appendChild(row);
+    }
+  }
+
+  // Summary bar
+  el("boardSummary").textContent =
+    ALL.length + " leads tracked · " + reached + " contacted · " +
+    counts.accepted + " accepted (" + acceptRate + "%)";
+}
+
+let CURRENT_VIEW = "leads";
+function switchView(view) {
+  CURRENT_VIEW = view;
+  el("leadsView").hidden = view !== "leads";
+  el("boardsView").hidden = view !== "boards";
+  document.querySelectorAll(".nav-tab").forEach((t) =>
+    t.classList.toggle("active", t.dataset.view === view));
+  if (view === "boards") renderBoards();
+}
+
+function openModal(l) {
+  CURRENT = l;
+  CURRENT_TAB = "email";
+  el("mTitle").textContent = bizLabel(l);
+  const subBits = [l.source, l.country, (l.industries || [])[0], l.tier ? l.tier.toUpperCase() : null].filter(Boolean);
+  el("mSub").textContent = subBits.join(" · ");
+  renderStatusPills();
+
+  // Detail rows
+  const d = el("mDetails");
+  d.innerHTML = "";
+  const c = l.contacts || {};
+  const rows = [
+    ["What they do", whatTheyDo(l) || "—"],
+    ["What they might want", pitch(l)],
+    ["Suggested services", services(l)],
+    ["Score / tier", (l.score || 0) + " · " + (l.tier || "cold")],
+    ["Signals", (l.signals || []).join(", ") || "—"],
+    ["Website", c.website || (l.enriched ? "—" : "(none in free data)")],
+    ["Phone", c.phone || "(needs paid enricher)"],
+    ["Email", (c.emails && c.emails[0]) || "(needs paid enricher)"],
+    ["Location", l.enrichedLocation || l.country || "—"],
+  ];
+  for (const [k, v] of rows) {
+    const cell = document.createElement("div");
+    cell.className = "detail-cell";
+    const kk = document.createElement("div"); kk.className = "k"; kk.textContent = k;
+    const vv = document.createElement("div"); vv.className = "v"; vv.textContent = v;
+    cell.append(kk, vv); d.appendChild(cell);
+  }
+
+  // Research / outreach links
+  const lk = el("mLinks");
+  lk.innerHTML = "";
+  const links = l.links || {};
+  const linkDefs = [
+    ["🌐 Website", c.website], ["🗺️ Google Maps", links.googleMaps],
+    ["🔍 Google", links.googleSearch], ["in LinkedIn", links.linkedin],
+    ["📇 Crunchbase", links.crunchbase], ["✉️ Find email", links.contactPage],
+    ["💬 Discussion", l.discussionUrl],
+  ];
+  for (const [label, href] of linkDefs) {
+    if (!href) continue;
+    lk.appendChild(link(href, label));
+  }
+
+  renderTemplate();
+  // reflect tab active state
+  document.querySelectorAll(".tmpl-tab").forEach(t => t.classList.toggle("active", t.dataset.t === CURRENT_TAB));
+  el("modal").classList.add("open");
+  el("mCopied").hidden = true;
+}
+function closeModal() { el("modal").classList.remove("open"); CURRENT = null; }
+function renderTemplate() {
+  if (!CURRENT) return;
+  el("mTmpl").value = (TEMPLATES[CURRENT_TAB] || tmplEmail)(CURRENT);
+}
+
+// ---- Wire up controls ----
+function bind() {
+  el("q").addEventListener("input", e => { filters.q = e.target.value; render(); });
+  el("region").addEventListener("change", e => { filters.region = e.target.value; render(); });
+  el("country").addEventListener("change", e => { filters.country = e.target.value; render(); });
+  el("industry").addEventListener("change", e => { filters.industry = e.target.value; render(); });
+  el("source").addEventListener("change", e => { filters.source = e.target.value; render(); });
+  el("minScore").addEventListener("input", e => {
+    filters.minScore = +e.target.value; el("minScoreVal").textContent = e.target.value; render();
+  });
+  el("hasContact").addEventListener("change", e => { filters.hasContact = e.target.checked; render(); });
+  el("sort").addEventListener("change", e => { filters.sort = e.target.value; render(); });
+  el("reset").addEventListener("click", () => {
+    Object.assign(filters, { q:"", region:"", country:"", industry:"", source:"", minScore:0, hasContact:false });
+    for (const id of ["q","region","country","industry","source"]) el(id).value = "";
+    el("minScore").value = 0; el("minScoreVal").textContent = "0"; el("hasContact").checked = false;
+    render();
+  });
+
+  // ---- Nav tabs (Leads / Boards) ----
+  document.querySelectorAll(".nav-tab").forEach((t) => {
+    t.addEventListener("click", () => switchView(t.dataset.view));
+  });
+
+  // ---- Outreach status pills ----
+  document.querySelectorAll("#mStatus .pill").forEach((b) => {
+    b.addEventListener("click", () => {
+      if (!CURRENT) return;
+      setStatus(CURRENT.id, b.dataset.s);
+      renderStatusPills();
+      // Keep the leads grid status tags fresh, and boards if they're showing.
+      render();
+      if (CURRENT_VIEW === "boards") renderBoards();
+    });
+  });
+
+  // ---- Modal controls ----
+  el("mClose").addEventListener("click", closeModal);
+  el("modal").addEventListener("click", (e) => { if (e.target === el("modal")) closeModal(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+  // Template tabs
+  document.querySelectorAll(".tmpl-tab").forEach((t) => {
+    t.addEventListener("click", () => {
+      CURRENT_TAB = t.dataset.t;
+      document.querySelectorAll(".tmpl-tab").forEach((x) => x.classList.toggle("active", x === t));
+      renderTemplate();
+      el("mCopied").hidden = true;
+    });
+  });
+
+  // Copy the (possibly edited) template text.
+  el("mCopy").addEventListener("click", async () => {
+    const text = el("mTmpl").value;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      el("mTmpl").select(); document.execCommand("copy");
+    }
+    el("mCopied").hidden = false;
+    setTimeout(() => { el("mCopied").hidden = true; }, 1800);
+  });
+
+  // "Open in app" — route to the right channel for the active tab.
+  el("mOpen").addEventListener("click", () => {
+    if (!CURRENT) return;
+    const c = CURRENT.contacts || {};
+    const body = el("mTmpl").value;
+    if (CURRENT_TAB === "email") {
+      const to = (c.emails && c.emails[0]) || "";
+      const m = body.match(/^Subject:\s*(.*)$/m);
+      const subject = m ? m[1] : ("Quick idea for " + bizLabel(CURRENT));
+      const bodyNoSubj = body.replace(/^Subject:.*\n\n?/, "");
+      window.open("mailto:" + encodeURIComponent(to) +
+        "?subject=" + encodeURIComponent(subject) +
+        "&body=" + encodeURIComponent(bodyNoSubj), "_blank");
+    } else if (CURRENT_TAB === "whatsapp") {
+      window.open("https://wa.me/?text=" + encodeURIComponent(body), "_blank");
+    } else if (CURRENT_TAB === "linkedin") {
+      const li = (CURRENT.links && CURRENT.links.linkedin) || "https://www.linkedin.com";
+      window.open(li, "_blank");
+    } else {
+      // Call script — nothing to open; just copy.
+      el("mCopy").click();
+    }
+  });
+
+  // "Your details" inputs — persist to localStorage and re-render the template.
+  const me = getMe();
+  el("meName").value = me.name || "";
+  el("meCompany").value = me.company || "";
+  el("meOffer").value = me.offer || "";
+  el("meCalendar").value = me.calendar || "";
+  const meMap = { meName: "name", meCompany: "company", meOffer: "offer", meCalendar: "calendar" };
+  for (const [id, key] of Object.entries(meMap)) {
+    el(id).addEventListener("input", (e) => {
+      setMe({ [key]: e.target.value });
+      renderTemplate();
+    });
+  }
+}
+
+el("footer").textContent = "Lead Radar · free daily startup & new-business lead scanner · data refreshes daily via GitHub Actions";
+bind();
+load();
+</script>
+</body>
+</html>

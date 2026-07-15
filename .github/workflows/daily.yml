@@ -1,0 +1,72 @@
+name: Daily lead refresh
+
+# Runs the scraper once a day, commits the fresh leads.json, and publishes
+# the public/ folder to GitHub Pages. Also runnable on demand.
+on:
+  schedule:
+    # 06:12 UTC daily. Off-the-hour minute so we don't pile onto :00 load.
+    - cron: '12 6 * * *'
+  workflow_dispatch: {}
+
+# Allow the job to commit back to the repo and deploy Pages.
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Don't let two scheduled runs overlap.
+concurrency:
+  group: daily-lead-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # No dependencies to install — the scraper is zero-dep. Kept as a no-op
+      # guard in case a package-lock is added later.
+      - name: Install (if lockfile present)
+        run: if [ -f package-lock.json ]; then npm ci; fi
+
+      - name: Run scraper
+        env:
+          # Optional: raises GitHub source rate limits if the repo provides it.
+          # Falls back to unauthenticated (works, just lower limits) if unset.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run update
+
+      - name: Commit refreshed leads.json
+        run: |
+          git config user.name "lead-radar-bot"
+          git config user.email "actions@github.com"
+          git add public/leads.json
+          if git diff --staged --quiet; then
+            echo "No changes to leads.json"
+          else
+            git commit -m "chore: daily lead refresh $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: refresh
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
