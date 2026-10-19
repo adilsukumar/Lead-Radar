@@ -1,162 +1,150 @@
-<h1 align="center">
-  <br>
-  <img src="https://img.icons8.com/fluency/256/radar.png" alt="Lead Radar" width="120">
-  <br>
-  Lead Radar
-  <br>
-</h1>
+<p><picture><source media="(max-width: 600px)" srcset="assets/readme/hero-mobile.svg"/><img src="assets/readme/hero.svg" width="100%" alt="Lead Radar. Spot a signal. Discover public-source prospects, inspect buying signals and organize manual outreach."/></picture></p>
 
-<h4 align="center">Finds newly launched startups & businesses worldwide that likely need custom SaaS/software work — and refreshes the list every day, for free.</h4>
+<p align="center"><a href="#what-i-built">Overview</a> · <a href="#where-signals-come-from">Sources</a> · <a href="#run-locally">Run locally</a> · <a href="#daily-refresh-and-pages">Deploy</a> · <a href="#the-dashboard">Dashboard</a> · <a href="#explore-and-customize">Customize</a></p>
 
-<p align="center">
-  <a href="#-key-features">Features</a> •
-  <a href="#-how-to-use-local">Use Locally</a> •
-  <a href="#-free-daily-auto-update">Deploy</a> •
-  <a href="#-the-dashboard">Dashboard</a> •
-  <a href="#-project-layout">Layout</a> •
-  <a href="#-license">License</a>
-</p>
+I built Lead Radar to turn scattered launch posts and business updates into a shortlist for software freelancers and agencies. It collects public-source items, applies transparent scoring rules and presents the results in a static dashboard with research links, editable outreach templates and a browser-local tracker.
 
-<p align="center"><a href="https://github.com/adilsukumar/Lead-Radar">github.com/adilsukumar/Lead-Radar</a></p>
+## <img src="assets/readme/icon-radar.svg" width="30" height="30" alt=""/> What I built
 
----
+<p><picture><source media="(max-width: 600px)" srcset="assets/readme/features-mobile.svg"/><img src="assets/readme/features.svg" width="100%" alt="Discover public signals, prioritize with transparent rules, research a niche and track manual follow-up."/></picture></p>
 
-Built for freelancers & agencies who sell SaaS builds and want a daily stream of fresh, qualified prospects across every region — with outreach templates ready to send.
+The default scraper uses Node’s built-in APIs with no package dependencies and requires no paid-enricher keys. Optional provider integrations can add contact and company details. Availability, source rate limits and provider plans still affect individual runs.
 
-## 🎯 Key Features
+## <img src="assets/readme/icon-docs.svg" width="30" height="30" alt=""/> Where signals come from
 
-- 🕵️ **Daily scrape of 5 free sources** — Hacker News (Show HN / Launch HN), startup RSS feeds (EU-Startups, Tech.eu, TechCrunch, Sifted, Disrupt Africa, LatamList, Tech in Asia), Dev.to, GitHub new repos, and SEC EDGAR. No keys, no paid APIs.
-- 🧠 **Smart qualification** — every lead gets a detected **country/region**, **industry** (17 buckets), extracted **contacts/links**, and a **Needs-SaaS score (0–100)** with a **hot / warm / cold** tier.
-- 💡 **"What to sell them"** — infers suggested services and a pitch angle per lead from its buying signals.
-- ✉️ **Ready-to-send outreach** — click any lead for a detail panel with 4 editable, auto-personalized templates: **Email, WhatsApp, Call script, LinkedIn DM** — plus copy & open-in-app.
-- 🏆 **Leaderboards** — hottest leads, top countries, top industries, most common buying signals.
-- 📋 **Outreach tracker** — mark leads New → Contacted → Replied → Accepted/Rejected; get an **acceptance-rate funnel** and a live pipeline (saved in your browser).
-- 🔗 **Research links per lead** — one-click Google Maps, Google, LinkedIn, Crunchbase, and find-email lookups.
-- 🧹 **Automatic deduplication** across sources, keeping the richest record.
-- ⚡ **Zero dependencies** — the scraper runs on Node 18+ built-in `fetch`. No `npm install`.
-- 💸 **100% free** — auto-updates daily via GitHub Actions + GitHub Pages.
-- 🔌 **Optional paid enrichers** — drop in Hunter / Apollo / Crunchbase keys to add **phone, verified emails, and location**. Off by default; the free path always works.
+<p><picture><source media="(max-width: 600px)" srcset="assets/readme/sources-mobile.svg"/><img src="assets/readme/sources.svg" width="100%" alt="Hacker News, startup RSS feeds, Dev.to, GitHub and SEC EDGAR adapters."/></picture></p>
 
----
+The RSS adapter includes publications such as EU-Startups, Tech.eu, TechCrunch, Sifted, Disrupt Africa, LatamList and Tech in Asia. Source responses may be empty, rate-limited or blocked; `leads.json` includes source statistics and recorded errors for inspection.
 
-## 🚀 How To Use (Local)
+## <img src="assets/readme/icon-pipeline.svg" width="30" height="30" alt=""/> From public posts to a shortlist
+
+<p><picture><source media="(max-width: 600px)" srcset="assets/readme/pipeline-mobile.svg"/><img src="assets/readme/pipeline.svg" width="100%" alt="Collect source items, infer context and score, deduplicate, and write a static JSON directory."/></picture></p>
+
+<details>
+<summary><strong>How the rules prioritize leads</strong></summary>
+
+The score adds weighted positive signals, subtracts non-fit signals and clamps the total to `0–100`. Positive title matches receive a `1.5×` multiplier.
+
+| Positive signals | Non-fit signals |
+|---|---|
+| Launches, MVPs, funding and waitlists | Large or established organizations |
+| Manual workflows and requests for an app | Tutorials, opinions and listing posts |
+| Hiring, scaling and small teams | Investor funds, editorial content and personal narratives |
+
+Tiers are **hot ≥ 50**, **warm ≥ 25** and **cold < 25**. Matching signals also suggest up to four services. These are hand-written rules, not a trained model or a calibrated conversion probability. Short descriptions can receive low scores even when the business is worth researching.
+
+Deduplication uses normalized company domains, platform-specific paths or a normalized title. When records collide, the implementation keeps the higher-scoring record and records additional sources.
+
+</details>
+
+## <img src="assets/readme/icon-terminal.svg" width="30" height="30" alt=""/> Run locally
+
+<p><picture><source media="(max-width: 600px)" srcset="assets/readme/environment-mobile.svg"/><img src="assets/readme/environment.svg" width="100%" alt="Dependency-free Node scraper. Refresh leads.json, then serve the static dashboard."/></picture></p>
+
+Requires **Node 18 or later**. No `npm install` step is needed for the current repository.
 
 ```bash
-# 1. Fetch + qualify leads (writes public/leads.json)
+git clone https://github.com/adilsukumar/Lead-Radar.git
+cd Lead-Radar
+
+# Fetch, qualify and write public/leads.json
 npm run update
 
-# 2. Preview the dashboard
+# Serve the dashboard
 npm run serve
-# open http://localhost:8080
 ```
 
-> Requires **Node ≥ 18**. No `npm install` needed — the scraper is zero-dependency.
+Open `http://localhost:8080`. The refresh uses the network; serving the existing JSON does not fetch new leads. `npm start` is an alias for the update script. The local server also accepts a `PORT` environment variable.
 
----
+## <img src="assets/readme/icon-local.svg" width="30" height="30" alt=""/> Daily refresh and Pages
 
-## ☁️ Free Daily Auto-Update
+The existing [Daily lead refresh workflow](.github/workflows/daily.yml) is scheduled for **06:12 UTC daily** and supports manual runs. It uses Node 20, refreshes `public/leads.json`, commits the generated data when changed, and publishes the `public/` folder through GitHub Pages.
 
-The workflow at `.github/workflows/daily.yml` runs on GitHub's free tier. Every day at **06:12 UTC** it runs the scraper, commits the refreshed `public/leads.json`, and redeploys the dashboard.
+1. Open **Settings → Pages** in the repository.
+2. Set **Build and deployment → Source** to **GitHub Actions**.
+3. Open **Actions → Daily lead refresh → Run workflow**.
 
-**One-time setup (required — see the note below):**
+If refresh succeeds and deployment fails, check the Pages configuration and the deploy-job log. Scheduled runs depend on GitHub Actions availability and repository settings; the schedule is configuration, not a guarantee of an exact daily delivery time.
 
-1. In the repo, go to **Settings → Pages**.
-2. Under **Build and deployment → Source**, choose **GitHub Actions**.
-3. Trigger a run from the **Actions** tab → **Daily lead refresh** → **Run workflow** (or wait for the next daily run).
+## <img src="assets/readme/icon-keywords.svg" width="30" height="30" alt=""/> The dashboard
 
-> ⚠️ **If the `deploy` job fails but `refresh` succeeds**, it's almost always because Pages source isn't set to **GitHub Actions** yet. Do step 2 above and re-run — the fetch worked, only the publish step needs Pages enabled. No secrets are required.
+<p><picture><source media="(max-width: 600px)" srcset="assets/readme/dashboard-mobile.svg"/><img src="assets/readme/dashboard.svg" width="100%" alt="Lead filtering, leaderboards, editable outreach and a browser-local status tracker."/></picture></p>
 
----
+Search by keyword and filter by region, country, industry, minimum score and contact availability. Results are ordered by score, then recency.
 
-## 🎛️ The Dashboard
+Open a lead to inspect its business summary, matched signals, suggested services, pitch angle and available contact fields. Research links open Google, Maps, LinkedIn, Crunchbase and email lookups. They are lookup shortcuts, not verified profiles.
 
-Two tabs: **Leads** and **Leaderboards**.
+The detail panel provides editable **Email, WhatsApp, Call and LinkedIn** templates. Personalize your name, company and offer, then copy a draft or open the relevant app. The dashboard does not automatically send a campaign. Status changes feed the local pipeline and acceptance-rate display; these are your recorded outcomes, not a model forecast.
 
-**Leads** — search by keyword; filter by region, country, industry, minimum Needs-SaaS score, and "has contact info". Sorted by score, then recency, so your best prospects sit on top. Any tracked lead shows a status tag on its card.
+## <img src="assets/readme/icon-code.svg" width="30" height="30" alt=""/> Optional provider enrichment
 
-**Click a lead** to open its detail panel:
-- What they do · what they might want · suggested services · score & tier · signals · website · phone · email · location
-- Research links: Google Maps, Google, LinkedIn, Crunchbase, find-email
-- Four outreach templates (Email / WhatsApp / Call / LinkedIn) — editable, personalized with your name/company/offer (saved in your browser), with **Copy** and **Open in app**
-- Outreach status pills to move the lead through your pipeline
+[.env.example](.env.example) lists the supported variables. The scraper reads `process.env`; it does **not** automatically load a local `.env` file. Export variables in your shell, or use your runtime’s environment-file support.
 
-**Leaderboards** — hottest leads, top countries/industries/signals, plus your personal acceptance-rate funnel and pipeline.
+```powershell
+# Optional: set in PowerShell before npm run update
+$env:HUNTER_API_KEY = "your_key"
+$env:ENRICH_TOP_N = "25"
+npm run update
+```
 
----
-
-## 🛠️ Tuning It for Your Niche
-
-Everything lives in small, readable files:
-
-| Customization | File |
+| Variable | Integration |
 |---|---|
-| Which data sources run | `src/sources/*.js` + `src/index.js` |
-| Buying signals / weights / tiers | `src/lib/score.js` |
-| Suggested services & pitch angle | `src/lib/score.js` + `src/lib/bizintel.js` |
-| Industry buckets | `src/lib/classify.js` |
-| Countries / cities detected | `src/lib/geo.js` |
-| RSS feeds in the mix | `src/sources/rssfeeds.js` |
-| Paid enricher providers | `src/lib/enrichers.js` |
-| Dashboard UI & templates | `public/index.html` |
+| `HUNTER_API_KEY` | Domain-based email lookup |
+| `APOLLO_API_KEY` | Company phone, size, industry and location |
+| `CRUNCHBASE_API_KEY` | Organization lookup and description |
+| `ENRICH_TOP_N` | Maximum top-ranked leads sent to configured enrichers; default `25` |
+| `GITHUB_TOKEN` | Optional authenticated GitHub source requests |
 
-### Optional Paid Enrichers
+Provider access and returned fields depend on your account and the response. The existing Actions workflow injects `GITHUB_TOKEN` only; enabling paid enrichers in Actions requires explicitly wiring their secrets into that workflow. Adding a repository secret alone does not expose it to the scraper.
 
-Set any of these env vars (see `.env.example`) to enrich the top-scored leads with phone, verified emails, and location — all **off by default**:
+## <img src="assets/readme/icon-local.svg" width="30" height="30" alt=""/> Coverage and storage
+
+<p><picture><source media="(max-width: 600px)" srcset="assets/readme/scope-mobile.svg"/><img src="assets/readme/scope.svg" width="100%" alt="Partial source coverage, heuristic scores and browser-local tracking."/></picture></p>
+
+Public feeds do not cover every business or country. Geographic inference can be sparse, and contact information may be absent or outdated. Review the original source and the business before reaching out. Blocked feeds are recorded and skipped.
+
+The static dashboard reads the generated JSON. Template identity settings and outreach statuses use browser `localStorage`; they are not synced between browsers or devices. Optional enrichment becomes part of the generated JSON, so review what will be published before deploying it publicly.
+
+## <img src="assets/readme/icon-docs.svg" width="30" height="30" alt=""/> Explore and customize
+
+<p align="center"><a href="src/sources/"><img src="assets/readme/doc-0.svg" width="430" alt="Source adapters: HN, RSS, Dev.to, GitHub and EDGAR"/></a> <a href="src/lib/score.js"><img src="assets/readme/doc-1.svg" width="430" alt="Scoring rules: Signals, weights, tiers and service hints"/></a> <a href="public/index.html"><img src="assets/readme/doc-2.svg" width="430" alt="Dashboard code: Filters, templates and browser tracking"/></a> <a href=".github/workflows/daily.yml"><img src="assets/readme/doc-3.svg" width="430" alt="Daily refresh: Scheduled update and Pages deployment"/></a></p>
+
+| Change | Source |
+|---|---|
+| Source adapters and orchestration | [src/sources/](src/sources/) · [src/index.js](src/index.js) |
+| Buying signals, weights and tiers | [score.js](src/lib/score.js) |
+| Business summaries and pitch angles | [bizintel.js](src/lib/bizintel.js) |
+| Industry rules | [classify.js](src/lib/classify.js) |
+| Country and city inference | [geo.js](src/lib/geo.js) |
+| RSS publications | [rssfeeds.js](src/sources/rssfeeds.js) |
+| Paid provider adapters | [enrichers.js](src/lib/enrichers.js) |
+| UI, templates and tracker | [public/index.html](public/index.html) |
+
+### Network diagnostics
 
 ```bash
-HUNTER_API_KEY=...       # emails for a company domain
-APOLLO_API_KEY=...       # phone, company size, industry, location
-CRUNCHBASE_API_KEY=...   # funding + firmographics
-ENRICH_TOP_N=25          # how many top leads to enrich per run
+node scripts/smoke.mjs
+node scripts/smoke-enrich.mjs
 ```
 
-Also optional: `GITHUB_TOKEN` raises the GitHub source's rate limit (auto-provided inside Actions).
+These existing scripts request live sources and print source counts, errors and enriched samples. They are diagnostics rather than an automated accuracy test suite.
 
----
-
-## 📈 How Leads Are Scored
-
-`score.js` adds weighted points for positive signals and subtracts for non-fits, clamped to 0–100, then maps to a tier:
-
-- **Positive** — just launched, MVP/early stage, just funded, manual/spreadsheet pain, needs a platform, hiring engineers, scaling pains, beta/waitlist.
-- **Negative** — large/established, editorial/opinion/podcast, VC funds, first-person narrative blog posts.
-- **Tiers** — 🔥 hot, 🟡 warm, ⚪ cold.
-
-> A low score isn't "bad" — short titles (common on registries) score lower even for great-fit companies. Use the **country/industry filters** alongside score.
-
----
-
-## ⚠️ Limitations (Honest)
-
-- **No single free source has "every business in every country"** — that data is fragmented across ~200 mostly-paid registries. This maximizes *free* global coverage and is easy to extend.
-- **Coverage skews tech / English-speaking.**
-- **Phone & address need a paid enricher key** — free sources don't carry them (Google Maps/LinkedIn lookup links are provided instead).
-- **Geo/score are sparse on short text** — one-line titles often show `—`.
-- **Cloudflare-protected feeds** (e.g. e27) block non-browser requests and are skipped.
-- **The tracker & templates are browser-local** — a $0 static site has no shared backend, so outreach data lives in your browser.
-
----
-
-## 📁 Project Layout
+### Repository map
 
 ```text
-Lead-Radar/
-├─ src/
-│  ├─ index.js          # orchestrator → writes public/leads.json
-│  ├─ serve.js          # zero-dep local static server
-│  ├─ sources/          # hackernews, rssfeeds, devto, github, edgar
-│  └─ lib/              # http, rss, geo, classify, score, extract,
-│                       #   enrich, bizintel, enrichers
-├─ public/
-│  ├─ index.html        # dashboard: leads, modal, templates, boards, tracker
-│  └─ leads.json        # generated data
-├─ .github/workflows/daily.yml   # free daily cron + Pages deploy
-├─ vercel.json          # optional Vercel static deploy
-└─ .env.example         # optional enricher keys
+src/index.js             source orchestration and JSON output
+src/serve.js             local static server
+src/sources/             public-source adapters
+src/lib/                 parsing, scoring, inference and enrichment
+public/index.html        dashboard and browser-local tracker
+public/leads.json        generated directory
+.github/workflows/       scheduled refresh and Pages deployment
+scripts/                 live source diagnostics
+vercel.json              optional static deployment configuration
 ```
 
----
+The package metadata declares the project **MIT**. The current tree has no standalone license file.
 
-## 📄 License
+<p><picture><source media="(max-width: 600px)" srcset="assets/readme/closing-mobile.svg"/><img src="assets/readme/closing.svg" width="100%" alt="Lead Radar: Find the signal. Make it personal. Research the business, understand the need and start a useful conversation."/></picture></p>
 
-MIT
+<p align="center"><a href="https://github.com/adilsukumar/Lead-Radar/issues">Discuss an improvement</a> · <a href="src/sources/">Add a source</a> · <a href="https://www.adilsukumar.xyz/">Meet the builder</a></p>
