@@ -4,11 +4,15 @@
 
 I built Lead Radar to turn scattered launch posts and business updates into a shortlist for software freelancers and agencies. It collects public-source items, applies transparent scoring rules and presents the results in a static dashboard with research links, editable outreach templates and a browser-local tracker.
 
+<a id="what-i-built"></a>
+
 ## <img src="assets/readme/icon-radar.svg" width="30" height="30" alt=""/> What I built
 
 <p><picture><source media="(max-width: 600px)" srcset="assets/readme/features-mobile.svg"/><img src="assets/readme/features.svg" width="100%" alt="Discover public signals, prioritize with transparent rules, research a niche and track manual follow-up."/></picture></p>
 
 The default scraper uses Node’s built-in APIs with no package dependencies and requires no paid-enricher keys. Optional provider integrations can add contact and company details. Availability, source rate limits and provider plans still affect individual runs.
+
+<a id="where-signals-come-from"></a>
 
 ## <img src="assets/readme/icon-docs.svg" width="30" height="30" alt=""/> Where signals come from
 
@@ -37,6 +41,8 @@ Deduplication uses normalized company domains, platform-specific paths or a norm
 
 </details>
 
+<a id="run-locally"></a>
+
 ## <img src="assets/readme/icon-terminal.svg" width="30" height="30" alt=""/> Run locally
 
 <p><picture><source media="(max-width: 600px)" srcset="assets/readme/environment-mobile.svg"/><img src="assets/readme/environment.svg" width="100%" alt="Dependency-free Node scraper. Refresh leads.json, then serve the static dashboard."/></picture></p>
@@ -56,6 +62,8 @@ npm run serve
 
 Open `http://localhost:8080`. The refresh uses the network; serving the existing JSON does not fetch new leads. `npm start` is an alias for the update script. The local server also accepts a `PORT` environment variable.
 
+<a id="daily-refresh-and-pages"></a>
+
 ## <img src="assets/readme/icon-local.svg" width="30" height="30" alt=""/> Daily refresh and Pages
 
 The existing [Daily lead refresh workflow](.github/workflows/daily.yml) is scheduled for **06:12 UTC daily** and supports manual runs. It uses Node 20, refreshes `public/leads.json`, commits the generated data when changed, and publishes the `public/` folder through GitHub Pages.
@@ -65,6 +73,8 @@ The existing [Daily lead refresh workflow](.github/workflows/daily.yml) is sched
 3. Open **Actions → Daily lead refresh → Run workflow**.
 
 If refresh succeeds and deployment fails, check the Pages configuration and the deploy-job log. Scheduled runs depend on GitHub Actions availability and repository settings; the schedule is configuration, not a guarantee of an exact daily delivery time.
+
+<a id="the-dashboard"></a>
 
 ## <img src="assets/readme/icon-keywords.svg" width="30" height="30" alt=""/> The dashboard
 
@@ -104,6 +114,8 @@ Provider access and returned fields depend on your account and the response. The
 Public feeds do not cover every business or country. Geographic inference can be sparse, and contact information may be absent or outdated. Review the original source and the business before reaching out. Blocked feeds are recorded and skipped.
 
 The static dashboard reads the generated JSON. Template identity settings and outreach statuses use browser `localStorage`; they are not synced between browsers or devices. Optional enrichment becomes part of the generated JSON, so review what will be published before deploying it publicly.
+
+<a id="explore-and-customize"></a>
 
 ## <img src="assets/readme/icon-docs.svg" width="30" height="30" alt=""/> Explore and customize
 
